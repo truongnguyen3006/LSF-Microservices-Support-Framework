@@ -30,6 +30,11 @@
         </dependency>
         <dependency>
             <groupId>com.myorg.lsf</groupId>
+            <artifactId>lsf-outbox-admin-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.myorg.lsf</groupId>
             <artifactId>lsf-contracts</artifactId>
             <version>${project.version}</version>
         </dependency>

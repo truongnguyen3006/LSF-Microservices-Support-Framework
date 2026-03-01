@@ -1,5 +1,7 @@
 package com.myorg.lsf.outbox.postgres;
 
+import com.myorg.lsf.outbox.sql.OutboxSql;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -45,5 +47,11 @@ public class LsfOutboxPostgresProperties {
     @Data
     public static class Metrics {
         private boolean enabled = true;
+    }
+
+
+    @PostConstruct
+    public void validate() {
+        this.table = OutboxSql.validateTableName(this.table);
     }
 }

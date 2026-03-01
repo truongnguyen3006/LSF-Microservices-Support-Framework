@@ -6,10 +6,8 @@ import com.myorg.lsf.contracts.core.envelope.EnvelopeBuilder;
 import com.myorg.lsf.contracts.core.envelope.EventEnvelope;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.StringUtils;
 

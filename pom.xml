@@ -20,6 +20,7 @@
         <module>lsf-outbox-mysql-starter</module>
         <module>lsf-outbox-core</module>
         <module>lsf-outbox-postgres-starter</module>
+        <module>lsf-outbox-admin-starter</module>
     </modules>
 
     <properties>

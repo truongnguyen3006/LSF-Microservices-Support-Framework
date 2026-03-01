@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = LsfEventingRedisAutoConfiguration.class)
 @EnableConfigurationProperties(LsfEventingProperties.class)
 @ConditionalOnClass(KafkaTemplate.class)
 public class LsfEventingAutoConfiguration {
@@ -165,29 +165,6 @@ public class LsfEventingAutoConfiguration {
                     idem.getMaxEntries(),
                     idem.getCleanupInterval()
             );
-        }
-
-    }
-
-    @Configuration
-    @ConditionalOnProperty(prefix="lsf.eventing.idempotency", name="enabled", havingValue="true")
-    @ConditionalOnProperty(prefix="lsf.eventing.idempotency", name="store", havingValue="redis")
-    static class RedisIdempotencyConfig {
-        @Bean
-        @ConditionalOnMissingBean(IdempotencyStore.class)
-        IdempotencyStore idempotencyStore(StringRedisTemplate redis, LsfEventingProperties props, Environment env) {
-            var idem = props.getIdempotency();
-
-            String groupId = resolveGroupId(env);
-
-            // ưu tiên redis.keyPrefix nếu có, fallback về idem.getKeyPrefix()
-            String rawPrefix = (idem.getRedis() != null && StringUtils.hasText(idem.getRedis().getKeyPrefix()))
-                    ? idem.getRedis().getKeyPrefix()
-                    : idem.getKeyPrefix();
-
-            String prefix = effectiveKeyPrefix(rawPrefix, groupId);
-
-            return new RedisIdempotencyStore(redis, idem.getTtl(), idem.getProcessingTtl(), prefix);
         }
 
     }

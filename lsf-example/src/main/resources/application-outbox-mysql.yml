@@ -23,3 +23,9 @@ lsf:
       send-timeout: 10s
     metrics:
       enabled: true
+    admin:
+      enabled: true
+      base-path: "/lsf/outbox"
+      default-limit: 50
+      max-limit: 200
+      allow-delete: false

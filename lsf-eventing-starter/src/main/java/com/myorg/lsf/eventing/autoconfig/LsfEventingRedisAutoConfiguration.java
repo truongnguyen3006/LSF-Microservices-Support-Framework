@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
  * (e.g., store=memory).
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(before = LsfEventingAutoConfiguration.class)
 @EnableConfigurationProperties(LsfEventingProperties.class)
 @ConditionalOnClass(RedisConnectionFactory.class)
 public class LsfEventingRedisAutoConfiguration {
