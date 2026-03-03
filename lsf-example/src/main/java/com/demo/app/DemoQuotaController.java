@@ -1,6 +1,7 @@
 package com.demo.app;
 
 import com.myorg.lsf.quota.api.QuotaRequest;
+import com.myorg.lsf.quota.api.QuotaReservationFacade;
 import com.myorg.lsf.quota.api.QuotaResult;
 import com.myorg.lsf.quota.api.QuotaService;
 import lombok.RequiredArgsConstructor;
@@ -14,25 +15,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DemoQuotaController {
 
-    private final QuotaService quota;
+    private final QuotaReservationFacade quota;
 
     @PostMapping("/reserve")
     public QuotaResult reserve(
-            @RequestParam(name = "key") String key,
-            @RequestParam(name = "limit") int limit,
-            @RequestParam(name = "amount", defaultValue = "1") int amount,
-            @RequestParam(name = "requestId", required = false) String requestId,
-            @RequestParam(name = "holdSeconds", defaultValue = "30") int holdSeconds
+            @RequestParam(name="key") String key,
+            @RequestParam(name="amount", defaultValue="1") int amount,
+            @RequestParam(name="requestId", required=false) String requestId
     ) {
-        String rid = (requestId == null || requestId.isBlank()) ? UUID.randomUUID().toString() : requestId;
+        String rid = (requestId == null || requestId.isBlank())
+                ? java.util.UUID.randomUUID().toString()
+                : requestId;
 
-        return quota.reserve(QuotaRequest.builder()
-                .quotaKey(key)
-                .requestId(rid)
-                .amount(amount)
-                .limit(limit)
-                .hold(Duration.ofSeconds(holdSeconds))
-                .build());
+        return quota.reserve(key, rid, amount);
     }
 
     @PostMapping("/confirm")

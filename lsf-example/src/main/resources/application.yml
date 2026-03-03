@@ -47,6 +47,13 @@ lsf:
     default-hold-seconds: 30
     keep-alive-seconds: 86400
     allow-release-confirmed: false
+    policies:
+      - key: "uniA:course_section:CT101-2026HK2-NHOM1"
+        limit: 3
+        hold-seconds: 60
+      - key: "uniA:ticket:FLIGHT123-ECONOMY"
+        limit: 2
+        hold-seconds: 120
 
 logging:
   pattern:

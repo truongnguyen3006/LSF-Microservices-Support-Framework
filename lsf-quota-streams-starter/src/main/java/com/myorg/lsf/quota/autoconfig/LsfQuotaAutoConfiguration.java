@@ -1,10 +1,14 @@
 package com.myorg.lsf.quota.autoconfig;
 
+import com.myorg.lsf.quota.api.QuotaReservationFacade;
 import com.myorg.lsf.quota.api.QuotaService;
 import com.myorg.lsf.quota.config.LsfQuotaProperties;
+import com.myorg.lsf.quota.impl.QuotaReservationFacadeImpl;
 import com.myorg.lsf.quota.impl.memory.MemoryQuotaService;
 import com.myorg.lsf.quota.impl.redis.RedisQuotaService;
 import com.myorg.lsf.quota.obs.QuotaMetrics;
+import com.myorg.lsf.quota.policy.QuotaPolicyProvider;
+import com.myorg.lsf.quota.policy.StaticQuotaPolicyProvider;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -56,5 +60,17 @@ public class LsfQuotaAutoConfiguration {
                 yield new MemoryQuotaService(props, metrics, clock);
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QuotaPolicyProvider quotaPolicyProvider(LsfQuotaProperties props) {
+        return new StaticQuotaPolicyProvider(props);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QuotaReservationFacade quotaReservationFacade(QuotaService quotaService, QuotaPolicyProvider policyProvider) {
+        return new QuotaReservationFacadeImpl(quotaService, policyProvider);
     }
 }
