@@ -47,13 +47,23 @@ lsf:
     default-hold-seconds: 30
     keep-alive-seconds: 86400
     allow-release-confirmed: false
-    policies:
-      - key: "uniA:course_section:CT101-2026HK2-NHOM1"
-        limit: 3
-        hold-seconds: 60
-      - key: "uniA:ticket:FLIGHT123-ECONOMY"
-        limit: 2
-        hold-seconds: 120
+#    policies:
+#      - key: "uniA:course_section:CT101-2026HK2-NHOM1"
+#        limit: 3
+#        hold-seconds: 60
+#      - key: "uniA:ticket:FLIGHT123-ECONOMY"
+#        limit: 2
+#        hold-seconds: 120
+    provider:
+      mode: JDBC
+      jdbc:
+        table: quota_policy
+        enabled-only: true
+      cache:
+        mode: MEMORY_REDIS
+        ttl-seconds: 30
+        local-max-size: 10000
+        redis-prefix: "lsf:quota:policy:"
 
 logging:
   pattern:

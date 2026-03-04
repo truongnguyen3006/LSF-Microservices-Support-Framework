@@ -4,9 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @ConfigurationProperties(prefix = "lsf.quota")
@@ -38,9 +36,51 @@ public class LsfQuotaProperties {
         private Integer holdSeconds;
     }
 
+    //Policy Provider (DB/Static/Auto) + Cache
+    private PolicyProvider provider = new PolicyProvider();
     @Data
-    public static class Policy {
-        private int limit;
-        private Integer holdSeconds; // optional override
+    public static class PolicyProvider {
+        /**
+         * AUTO: ưu tiên JDBC nếu có JdbcTemplate, không có thì STATIC (from lsf.quota.policies list)
+         * JDBC: bắt buộc đọc DB
+         * STATIC: chỉ đọc list policies trong YAML
+         */
+        private Mode mode = Mode.AUTO;
+
+        private Jdbc jdbc = new Jdbc();
+        private Cache cache = new Cache();
+
+        public enum Mode { AUTO, JDBC, STATIC }
+
+        @Data
+        public static class Jdbc {
+            /**
+             * Table name (supports schema.table). Example: quota_policy or mydb.quota_policy
+             */
+            private String table = "quota_policy";
+            private boolean enabledOnly = true;
+        }
+
+        @Data
+        public static class Cache {
+            /**
+             * NONE: no cache
+             * MEMORY: in-memory TTL cache
+             * REDIS: redis TTL cache
+             * MEMORY_REDIS: check memory -> redis -> jdbc/static -> fill both
+             */
+            private CacheMode mode = CacheMode.MEMORY_REDIS;
+
+            /** TTL seconds for cached policy (both memory and redis) */
+            private int ttlSeconds = 30;
+
+            /** Max entries for local cache */
+            private int localMaxSize = 10_000;
+
+            /** Redis key prefix for policy cache */
+            private String redisPrefix = "lsf:quota:policy:";
+        }
+
+        public enum CacheMode { NONE, MEMORY, REDIS, MEMORY_REDIS }
     }
 }
