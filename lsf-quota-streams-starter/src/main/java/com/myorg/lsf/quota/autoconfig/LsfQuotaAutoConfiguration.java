@@ -3,6 +3,7 @@ package com.myorg.lsf.quota.autoconfig;
 import com.myorg.lsf.quota.api.QuotaReservationFacade;
 import com.myorg.lsf.quota.api.QuotaService;
 import com.myorg.lsf.quota.config.LsfQuotaProperties;
+import com.myorg.lsf.quota.config.QuotaConfigurationValidator;
 import com.myorg.lsf.quota.impl.QuotaReservationFacadeImpl;
 import com.myorg.lsf.quota.impl.memory.MemoryQuotaService;
 import com.myorg.lsf.quota.impl.redis.RedisQuotaService;
@@ -20,9 +21,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Clock;
@@ -34,13 +35,22 @@ import java.time.Duration;
 public class LsfQuotaAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(name = "lsfQuotaClock")
+    public Clock lsfQuotaClock() {
+        return Clock.systemUTC();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public QuotaService quotaService(
             LsfQuotaProperties props,
             ObjectProvider<StringRedisTemplate> redisProvider,
             ObjectProvider<MeterRegistry> meterRegistryProvider,
-            Environment env
+            Environment env,
+            @Qualifier("lsfQuotaClock") Clock clock
     ) {
+        QuotaConfigurationValidator.validate(props);
+
         String app = env.getProperty("spring.application.name", "unknown-service");
         String backend = props.getStore().name().toLowerCase();
 
@@ -49,8 +59,6 @@ public class LsfQuotaAutoConfiguration {
         if (props.isMetricsEnabled() && r != null) {
             metrics = new QuotaMetrics(r, app, backend);
         }
-
-        Clock clock = Clock.systemUTC();
 
         return switch (props.getStore()) {
             case REDIS -> {
@@ -81,6 +89,7 @@ public class LsfQuotaAutoConfiguration {
             LsfQuotaProperties props,
             ObjectProvider<JdbcTemplate> jdbcProvider
     ) {
+        QuotaConfigurationValidator.validate(props);
         var mode = props.getProvider().getMode();
 
         return switch (mode) {
@@ -103,15 +112,16 @@ public class LsfQuotaAutoConfiguration {
     public QuotaPolicyProvider quotaPolicyProvider(
             LsfQuotaProperties props,
             @Qualifier("lsfQuotaPolicyProviderBase") QuotaPolicyProvider base,
-            ObjectProvider<StringRedisTemplate> redisProvider
+            ObjectProvider<StringRedisTemplate> redisProvider,
+            @Qualifier("lsfQuotaClock") Clock clock
     ) {
+        QuotaConfigurationValidator.validate(props);
         var cacheCfg = props.getProvider().getCache();
         var mode = cacheCfg.getMode();
         if (mode == LsfQuotaProperties.PolicyProvider.CacheMode.NONE) {
             return base;
         }
 
-        Clock clock = Clock.systemUTC();
         Duration ttl = Duration.ofSeconds(Math.max(1, cacheCfg.getTtlSeconds()));
 
         MemoryPolicyCache mem = null;

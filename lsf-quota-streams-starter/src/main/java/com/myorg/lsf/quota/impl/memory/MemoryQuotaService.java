@@ -4,7 +4,6 @@ import com.myorg.lsf.quota.api.*;
 import com.myorg.lsf.quota.config.LsfQuotaProperties;
 import com.myorg.lsf.quota.obs.QuotaMetrics;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.convert.Bucket;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -54,7 +53,7 @@ public class MemoryQuotaService implements QuotaService {
         }
         int amount = Math.max(1, req.amount());
         int limit = req.limit();
-        if(b.used + limit > amount){
+        if(b.used + amount  > limit){
             if(metrics != null) metrics.incReserveRejected();
             return QuotaResult.builder()
                     .decision(QuotaDecision.REJECTED)

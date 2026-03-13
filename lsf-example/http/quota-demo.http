@@ -1,0 +1,60 @@
+@host = http://localhost:8082
+@orderId = 7e4bbf91-0e34-4dd8-9e28-54fdb205418c
+### Reserve 1 slot (JSON)
+POST  {{host}}/quota/reserve-json
+Content-Type: application/json
+
+{
+  "key": "flashsale:sku-01",
+  "amount": 1,
+  "requestId": "REQ-001"
+}
+
+### Confirm reservation
+POST  {{host}}/quota/confirm-json
+Content-Type: application/json
+
+{
+  "key": "flashsale:sku-01",
+  "requestId": "REQ-001"
+}
+
+### Release reservation
+POST  {{host}}/quota/release-json
+Content-Type: application/json
+
+{
+  "key": "flashsale:sku-01",
+  "requestId": "REQ-001"
+}
+
+### Reserve with auto-generated requestId
+POST  {{host}}/quota/reserve-json
+Content-Type: application/json
+
+{
+  "key": "uniA:course_section:CT101-2026HK2-NHOM1",
+  "amount": 1
+}
+
+
+### Reserve one unit in flash sale
+POST  {{host}}/demo/flash-sale/orders/reserve
+Content-Type: application/json
+
+{
+  "tenant": "shopA",
+  "sku": "IPHONE15-128-BLACK",
+  "quantity": 1,
+  "requestId": "fs-order-001"
+}
+
+
+### Confirm reserved order
+POST {{host}}/demo/flash-sale/orders/{{orderId}}/confirm
+
+### Release reserved/confirmed order
+POST {{host}}/demo/flash-sale/orders/{{orderId}}/release
+
+### Get order snapshot
+GET {{host}}/demo/flash-sale/orders/{{orderId}}

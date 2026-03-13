@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import com.myorg.lsf.outbox.OutboxWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -22,16 +23,16 @@ import java.time.Clock;
 @EnableConfigurationProperties(LsfOutboxMySqlProperties.class)
 public class LsfOutboxMySqlAutoConfiguration {
 
+    @Bean(name = "lsfOutboxMySqlClock")
+    @ConditionalOnMissingBean(name = "lsfOutboxMySqlClock")
+    public Clock lsfOutboxMySqlClock() {
+        return Clock.systemUTC();
+    }
+
     @Bean
     @ConditionalOnMissingBean(name = "lsfOutboxObjectMapper")
     public ObjectMapper lsfOutboxObjectMapper() {
         return new ObjectMapper();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public Clock lsfOutboxClock() {
-        return Clock.systemUTC();
     }
 
     @Bean
@@ -86,7 +87,7 @@ public class LsfOutboxMySqlAutoConfiguration {
                                            KafkaTemplate<String, Object> kafkaTemplate,
                                            ObjectMapper lsfOutboxObjectMapper,
                                            TransactionTemplate lsfOutboxTxTemplate,
-                                           Clock lsfOutboxClock,
+                                           @Qualifier("lsfOutboxMySqlClock") Clock clock,
                                            OutboxPublisherHooks hooks,
                                            ObjectProvider<OutboxMetrics> metricsProvider) {
         return new OutboxPublisher(
@@ -95,9 +96,9 @@ public class LsfOutboxMySqlAutoConfiguration {
                 kafkaTemplate,
                 lsfOutboxObjectMapper,
                 lsfOutboxTxTemplate,
-                lsfOutboxClock,
+                clock,
                 hooks,
-                metricsProvider.getIfAvailable() // nếu metrics bean không tồn tại thì null OK
+                metricsProvider.getIfAvailable()
         );
     }
 

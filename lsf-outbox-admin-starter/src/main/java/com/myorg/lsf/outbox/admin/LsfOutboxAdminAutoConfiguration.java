@@ -1,6 +1,7 @@
 package com.myorg.lsf.outbox.admin;
 
 import com.myorg.lsf.outbox.sql.OutboxSql;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,7 +19,7 @@ import java.time.Clock;
 public class LsfOutboxAdminAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(name = "lsfOutboxAdminClock")
     public Clock lsfOutboxAdminClock() {
         return Clock.systemUTC();
     }
@@ -41,7 +42,7 @@ public class LsfOutboxAdminAutoConfiguration {
     @Bean
     public OutboxAdminService outboxAdminService(JdbcOutboxAdminRepository repo,
                                                  LsfOutboxAdminProperties props,
-                                                 Clock lsfOutboxAdminClock) {
+                                                 @Qualifier("lsfOutboxAdminClock") Clock lsfOutboxAdminClock) {
         return new OutboxAdminService(repo, props, lsfOutboxAdminClock);
     }
 
