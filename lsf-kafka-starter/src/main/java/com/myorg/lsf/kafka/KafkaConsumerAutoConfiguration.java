@@ -43,7 +43,9 @@ public class KafkaConsumerAutoConfiguration {
         c.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         // Reduce "missed" messages when running local demos (fresh group w/o offsets)
         c.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, props.getConsumer().getAutoOffsetReset());
-        c.put("json.value.type", "com.myorg.lsf.contracts.core.envelope.EventEnvelope");
+        if (StringUtils.hasText(props.getConsumer().getJsonValueType())) {
+            c.put("json.value.type", props.getConsumer().getJsonValueType());
+        }
 
         //set group.id nếu user cấu hình
         if (StringUtils.hasText(props.getConsumer().getGroupId())) {

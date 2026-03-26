@@ -35,6 +35,7 @@ public class KafkaProperties {
         private int concurrency = 10;
         private int maxPollRecords = 1000;
         private final Retry retry = new Retry();
+        private String jsonValueType;
     }
     @Data
     public static class Retry{

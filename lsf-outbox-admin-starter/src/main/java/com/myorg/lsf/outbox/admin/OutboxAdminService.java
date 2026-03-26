@@ -15,24 +15,39 @@ public class OutboxAdminService {
     private final LsfOutboxAdminProperties props;
     private final Clock clock;
 
-    public List<OutboxAdminRow> list(List<OutboxStatus> statuses, Integer limit, Integer offset) {
+    public List<OutboxAdminRow> list(List<OutboxStatus> statuses,
+                                     String topic,
+                                     Instant from,
+                                     Instant to,
+                                     Integer limit,
+                                     Integer offset) {
         int lim = clamp(limit != null ? limit : props.getDefaultLimit());
         int off = Math.max(0, offset != null ? offset : 0);
-        return repo.list(statuses, lim, off);
+        return repo.list(statuses, topic, from, to, lim, off);
     }
 
     public Optional<OutboxAdminRow> findByEventId(String eventId) {
         return repo.findByEventId(eventId);
     }
 
+    public Optional<OutboxAdminRow> findById(long id) {
+        return repo.findById(id);
+    }
+
     @Transactional
     public int requeueByEventId(String eventId, OutboxStatus mode, boolean resetRetry) {
+        if (!props.isAllowRetry()) {
+            throw new IllegalStateException("Retry is disabled. Set lsf.outbox.admin.allow-retry=true to enable.");
+        }
         Instant now = clock.instant();
         return repo.requeueByEventId(eventId, mode, resetRetry, now);
     }
 
     @Transactional
     public int requeueFailed(Integer limit, boolean resetRetry) {
+        if (!props.isAllowRetry()) {
+            throw new IllegalStateException("Retry is disabled. Set lsf.outbox.admin.allow-retry=true to enable.");
+        }
         int lim = clamp(limit != null ? limit : props.getDefaultLimit());
         Instant now = clock.instant();
         return repo.requeueFailed(lim, resetRetry, now);

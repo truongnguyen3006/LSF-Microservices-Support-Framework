@@ -22,25 +22,47 @@ public class JdbcOutboxAdminRepository {
         return OutboxSql.validateTableName(table);
     }
 
-    public List<OutboxAdminRow> list(List<OutboxStatus> statuses, int limit, int offset) {
-        String sql = """
-                SELECT id, topic, msg_key, event_id, event_type, status,
-                       created_at, sent_at, retry_count, last_error,
-                       lease_owner, lease_until, next_attempt_at
-                FROM %s
-                WHERE (:statusesEmpty = true OR status IN (:statuses))
-                ORDER BY id DESC
-                LIMIT :limit OFFSET :offset
-                """.formatted(t());
+    public List<OutboxAdminRow> list(List<OutboxStatus> statuses,
+                                     String topic,
+                                     Instant from,
+                                     Instant to,
+                                     int limit,
+                                     int offset) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT id, topic, msg_key, event_id, event_type, status,
+                   created_at, sent_at, retry_count, last_error,
+                   lease_owner, lease_until, next_attempt_at
+            FROM %s
+            WHERE 1=1
+            """.formatted(t()));
 
-        boolean empty = (statuses == null || statuses.isEmpty());
         MapSqlParameterSource p = new MapSqlParameterSource()
-                .addValue("statusesEmpty", empty)
-                .addValue("statuses", empty ? List.of("NEW") : statuses.stream().map(Enum::name).toList())
                 .addValue("limit", limit)
                 .addValue("offset", offset);
 
-        return named.query(sql, p, (rs, i) -> new OutboxAdminRow(
+        if (statuses != null && !statuses.isEmpty()) {
+            sql.append(" AND status IN (:statuses) ");
+            p.addValue("statuses", statuses.stream().map(Enum::name).toList());
+        }
+
+        if (topic != null && !topic.isBlank()) {
+            sql.append(" AND topic = :topic ");
+            p.addValue("topic", topic.trim());
+        }
+
+        if (from != null) {
+            sql.append(" AND created_at >= :from ");
+            p.addValue("from", Timestamp.from(from));
+        }
+
+        if (to != null) {
+            sql.append(" AND created_at <= :to ");
+            p.addValue("to", Timestamp.from(to));
+        }
+
+        sql.append(" ORDER BY id DESC LIMIT :limit OFFSET :offset ");
+
+        return named.query(sql.toString(), p, (rs, i) -> new OutboxAdminRow(
                 rs.getLong("id"),
                 rs.getString("topic"),
                 rs.getString("msg_key"),
@@ -81,6 +103,34 @@ public class JdbcOutboxAdminRepository {
                 rs.getString("lease_owner"),
                 rs.getString("last_error")
         ), eventId);
+
+        return rows.stream().findFirst();
+    }
+
+    public Optional<OutboxAdminRow> findById(long id) {
+        String sql = """
+            SELECT id, topic, msg_key, event_id, event_type, status,
+                   created_at, sent_at, retry_count, last_error,
+                   lease_owner, lease_until, next_attempt_at
+            FROM %s
+            WHERE id = ?
+            """.formatted(t());
+
+        List<OutboxAdminRow> rows = jdbc.query(sql, (rs, i) -> new OutboxAdminRow(
+                rs.getLong("id"),
+                rs.getString("topic"),
+                rs.getString("msg_key"),
+                rs.getString("event_id"),
+                rs.getString("event_type"),
+                OutboxStatus.from(rs.getString("status")),
+                rs.getInt("retry_count"),
+                tsToInstant(rs.getTimestamp("created_at")),
+                tsToInstant(rs.getTimestamp("sent_at")),
+                tsToInstant(rs.getTimestamp("next_attempt_at")),
+                tsToInstant(rs.getTimestamp("lease_until")),
+                rs.getString("lease_owner"),
+                rs.getString("last_error")
+        ), id);
 
         return rows.stream().findFirst();
     }

@@ -111,8 +111,13 @@ public class OutboxPublisher {
         return Duration.ofMillis(ms);
     }
 
-    private String safeErr(Throwable e) {
-        String msg = e.getClass().getSimpleName() + ": " + (e.getMessage() == null ? "" : e.getMessage());
+    private String safeErr(Throwable t) {
+        Throwable root = t;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        String msg = root.getClass().getSimpleName() + ": " +
+                (root.getMessage() == null ? "" : root.getMessage());
         return msg.length() > 2000 ? msg.substring(0, 2000) : msg;
     }
 }

@@ -24,10 +24,15 @@ import java.time.Clock;
 @ConditionalOnClass(JdbcTemplate.class)
 public class LsfOutboxPostgresAutoConfiguration {
 
-    @Bean
+    @Bean(name = "lsfOutboxObjectMapper")
     @ConditionalOnMissingBean(name = "lsfOutboxObjectMapper")
-    public ObjectMapper lsfOutboxObjectMapper() {
-        return new ObjectMapper();
+    public ObjectMapper lsfOutboxObjectMapper(
+            org.springframework.http.converter.json.Jackson2ObjectMapperBuilder builder
+    ) {
+        return builder
+                .createXmlMapper(false)
+                .build()
+                .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Bean

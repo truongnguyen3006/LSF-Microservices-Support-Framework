@@ -17,6 +17,6 @@ public class LsfOutboxAdminProperties {
 
     /** Delete endpoint OFF by default (an toàn). */
     private boolean allowDelete = false;
-
+    private boolean allowRetry = true;
 
 }
