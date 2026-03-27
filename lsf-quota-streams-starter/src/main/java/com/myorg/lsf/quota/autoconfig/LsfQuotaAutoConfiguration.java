@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import com.myorg.lsf.quota.api.QuotaQueryFacade;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -79,7 +80,16 @@ public class LsfQuotaAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public QuotaReservationFacade quotaReservationFacade(QuotaService quotaService, QuotaPolicyProvider policyProvider) {
+    public QuotaQueryFacade quotaQueryFacade(@Qualifier("quotaService") QuotaService quotaService) {
+        if (quotaService instanceof QuotaQueryFacade queryFacade) {
+            return queryFacade::getSnapshot;
+        }
+        throw new IllegalStateException("Configured QuotaService does not support quota snapshot queries.");
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QuotaReservationFacade quotaReservationFacade(@Qualifier("quotaService") QuotaService quotaService, QuotaPolicyProvider policyProvider) {
         return new QuotaReservationFacadeImpl(quotaService, policyProvider);
     }
 

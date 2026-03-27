@@ -4,6 +4,8 @@ import com.myorg.lsf.quota.api.*;
 import com.myorg.lsf.quota.config.LsfQuotaProperties;
 import com.myorg.lsf.quota.obs.QuotaMetrics;
 import lombok.RequiredArgsConstructor;
+import com.myorg.lsf.quota.api.QuotaQueryFacade;
+import com.myorg.lsf.quota.api.QuotaSnapshot;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -11,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class MemoryQuotaService implements QuotaService {
+public class MemoryQuotaService implements QuotaService, QuotaQueryFacade {
     private final LsfQuotaProperties props;
     private final QuotaMetrics metrics;
     private final Clock clock;
@@ -158,6 +160,21 @@ public class MemoryQuotaService implements QuotaService {
                 .state(null).used(b.used)
                 .limit(0)
                 .holdUntilEpochMs(0)
+                .build();
+    }
+
+    @Override
+    public synchronized QuotaSnapshot getSnapshot(String quotaKey) {
+        long now = clock.millis();
+        Bucket b = buckets.computeIfAbsent(quotaKey, k -> new Bucket());
+        b.purgeExpired(now);
+
+        return QuotaSnapshot.builder()
+                .quotaKey(quotaKey)
+                .used(b.used)
+                .reservedCount(b.reserved.size())
+                .confirmedCount(b.confirmed.size())
+                .refreshedAtEpochMs(now)
                 .build();
     }
 

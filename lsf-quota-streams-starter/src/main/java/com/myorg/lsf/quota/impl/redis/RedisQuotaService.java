@@ -6,13 +6,15 @@ import com.myorg.lsf.quota.obs.QuotaMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import com.myorg.lsf.quota.api.QuotaQueryFacade;
+import com.myorg.lsf.quota.api.QuotaSnapshot;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class RedisQuotaService implements QuotaService {
+public class RedisQuotaService implements QuotaService, QuotaQueryFacade {
     private final StringRedisTemplate redis;
     private final LsfQuotaProperties props;
     private final QuotaMetrics metrics; // nullable
@@ -106,6 +108,33 @@ public class RedisQuotaService implements QuotaService {
         }
         if (metrics != null) metrics.incReleaseNotFound();
         return QuotaResult.builder().decision(QuotaDecision.NOT_FOUND).state(null).used(used).limit(0).holdUntilEpochMs(0).build();
+    }
+
+    @Override
+    public QuotaSnapshot getSnapshot(String quotaKey) {
+        long now = clock.millis();
+        long keepAliveMs = Duration.ofSeconds(props.getKeepAliveSeconds()).toMillis();
+        Keys k = keys(quotaKey);
+
+        @SuppressWarnings("unchecked")
+        List<Long> out = (List<Long>) redis.execute(
+                SNAPSHOT_SCRIPT,
+                List.of(k.ckey, k.resHash, k.confHash, k.zset),
+                String.valueOf(now),
+                String.valueOf(keepAliveMs)
+        );
+
+        int used = out != null && out.size() > 0 ? out.get(0).intValue() : 0;
+        int reservedCount = out != null && out.size() > 1 ? out.get(1).intValue() : 0;
+        int confirmedCount = out != null && out.size() > 2 ? out.get(2).intValue() : 0;
+
+        return QuotaSnapshot.builder()
+                .quotaKey(quotaKey)
+                .used(used)
+                .reservedCount(reservedCount)
+                .confirmedCount(confirmedCount)
+                .refreshedAtEpochMs(now)
+                .build();
     }
 
     private QuotaResult parseReserveResult(List<Long> out, int limit) {
@@ -370,8 +399,48 @@ public class RedisQuotaService implements QuotaService {
 
             return {0, cur}
             """;
+    private static final String SNAPSHOT_LUA = """
+        local ckey = KEYS[1]
+        local res  = KEYS[2]
+        local conf = KEYS[3]
+        local zkey = KEYS[4]
+
+        local now  = tonumber(ARGV[1])
+        local keep = tonumber(ARGV[2])
+
+        -- purge expired reservations
+        local expired = redis.call('ZRANGEBYSCORE', zkey, '-inf', now)
+        if expired and #expired > 0 then
+          for i=1,#expired do
+            local rid = expired[i]
+            local a = redis.call('HGET', res, rid)
+            if a then
+              redis.call('HDEL', res, rid)
+              redis.call('ZREM', zkey, rid)
+              local cur = tonumber(redis.call('GET', ckey) or '0')
+              cur = cur - tonumber(a)
+              if cur < 0 then cur = 0 end
+              redis.call('SET', ckey, cur)
+            else
+              redis.call('ZREM', zkey, rid)
+            end
+          end
+        end
+
+        local used = tonumber(redis.call('GET', ckey) or '0')
+        local reservedCount = tonumber(redis.call('HLEN', res) or '0')
+        local confirmedCount = tonumber(redis.call('HLEN', conf) or '0')
+
+        redis.call('PEXPIRE', ckey, keep)
+        redis.call('PEXPIRE', res, keep)
+        redis.call('PEXPIRE', conf, keep)
+        redis.call('PEXPIRE', zkey, keep)
+
+        return {used, reservedCount, confirmedCount}
+        """;
 
     private static final DefaultRedisScript<List> RESERVE_SCRIPT = new DefaultRedisScript<>(RESERVE_LUA, List.class);
     private static final DefaultRedisScript<List> CONFIRM_SCRIPT = new DefaultRedisScript<>(CONFIRM_LUA, List.class);
     private static final DefaultRedisScript<List> RELEASE_SCRIPT = new DefaultRedisScript<>(RELEASE_LUA, List.class);
+    private static final DefaultRedisScript<List> SNAPSHOT_SCRIPT = new DefaultRedisScript<>(SNAPSHOT_LUA, List.class);
 }
