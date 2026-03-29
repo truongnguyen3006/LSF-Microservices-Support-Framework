@@ -6,20 +6,26 @@ import com.myorg.lsf.contracts.core.envelope.EventEnvelope;
 import com.myorg.lsf.outbox.OutboxWriter;
 import com.myorg.lsf.outbox.sql.OutboxSql;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.PreparedStatement;
-
+@Slf4j
 @RequiredArgsConstructor
 public class JdbcOutboxWriter implements OutboxWriter {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
     private final LsfOutboxMySqlProperties props;
+    private final OutboxMetrics metrics;
     private String t() {
         return OutboxSql.validateTableName(props.getTable());
+    }
+
+    public JdbcOutboxWriter(JdbcTemplate jdbc, ObjectMapper mapper, LsfOutboxMySqlProperties props) {
+        this(jdbc, mapper, props, null);
     }
 
     @Override
@@ -48,16 +54,36 @@ public class JdbcOutboxWriter implements OutboxWriter {
         }, kh);
 
         Number k = kh.getKey();
-        if (k != null) return k.longValue();
+        Long outboxId = null;
 
-        var keys = kh.getKeys();
-        if (keys != null) {
-            Object id = keys.get("id");
-            if (id == null) id = keys.get("ID");
-            if (id instanceof Number n) return n.longValue();
+        if (k != null) outboxId = k.longValue();
+
+        if (outboxId == null) {
+            var keys = kh.getKeys();
+            if (keys != null) {
+                Object id = keys.get("id");
+                if (id == null) id = keys.get("ID");
+                if (id instanceof Number n) outboxId = n.longValue();
+            }
         }
 
-        throw new IllegalStateException("No generated key 'id' returned from insert into " + t());
+        if (outboxId == null) {
+            throw new IllegalStateException("No generated key 'id' returned from insert into " + t());
+        }
+
+        if (metrics != null) metrics.incAppend();
+
+        log.debug(
+                "OUTBOX APPEND -> id={}, eventId={}, eventType={}, topic={}, aggregateId={}, correlationId={}",
+                outboxId,
+                envelope.getEventId(),
+                envelope.getEventType(),
+                topic,
+                envelope.getAggregateId(),
+                envelope.getCorrelationId()
+        );
+
+        return outboxId;
     }
 
 

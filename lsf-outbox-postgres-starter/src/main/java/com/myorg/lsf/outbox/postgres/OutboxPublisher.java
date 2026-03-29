@@ -76,7 +76,12 @@ public class OutboxPublisher {
 
                 Instant sentAt = clock.instant();
                 tx.executeWithoutResult(st -> repo.markSent(row.id(), sentAt));
-                if (metrics != null) metrics.incPublished();
+                if (metrics != null) metrics.incSent();
+
+                log.debug(
+                        "OUTBOX SENT -> id={}, eventId={}, topic={}, retryCount={}",
+                        row.id(), row.eventId(), row.topic(), row.retryCount()
+                );
 
             } catch (Exception e) {
                 if (metrics != null) metrics.incFailed();
@@ -84,13 +89,20 @@ public class OutboxPublisher {
                 int nextRetryCount = row.retryCount() + 1;
                 if (nextRetryCount >= props.getPublisher().getMaxRetries()) {
                     tx.executeWithoutResult(st -> repo.markFailed(row.id(), safeErr(e)));
-                    log.warn("Outbox FAILED id={} eventId={} after retries={}", row.id(), row.eventId(), nextRetryCount, e);
+                    log.error(
+                            "OUTBOX FAILED -> id={}, eventId={}, topic={}, retries={}, error={}",
+                            row.id(), row.eventId(), row.topic(), nextRetryCount, safeErr(e)
+                    );
                     continue;
                 }
 
                 Instant nextAttempt = clock.instant().plus(backoff(nextRetryCount));
+                if (metrics != null) metrics.incRetry();
                 tx.executeWithoutResult(st -> repo.markRetry(row.id(), nextAttempt, safeErr(e)));
-                log.warn("Outbox RETRY id={} eventId={} retry={} nextAttempt={}", row.id(), row.eventId(), nextRetryCount, nextAttempt, e);
+                log.warn(
+                        "OUTBOX RETRY -> id={}, eventId={}, topic={}, retry={}, nextAttempt={}, error={}",
+                        row.id(), row.eventId(), row.topic(), nextRetryCount, nextAttempt, safeErr(e)
+                );
             }
         }
     }

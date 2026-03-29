@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myorg.lsf.outbox.OutboxWriter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -57,9 +58,15 @@ public class LsfOutboxPostgresAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "lsf.outbox", name = "enabled", havingValue = "true")
     public OutboxWriter outboxWriter(JdbcTemplate jdbcTemplate,
-                                     ObjectMapper lsfOutboxObjectMapper,
-                                     LsfOutboxPostgresProperties props) {
-        return new JdbcOutboxWriter(jdbcTemplate, lsfOutboxObjectMapper, props);
+                                     @Qualifier("lsfOutboxObjectMapper") ObjectMapper lsfOutboxObjectMapper,
+                                     LsfOutboxPostgresProperties props,
+                                     ObjectProvider<OutboxMetrics> metricsProvider) {
+        return new JdbcOutboxWriter(
+                jdbcTemplate,
+                lsfOutboxObjectMapper,
+                props,
+                metricsProvider.getIfAvailable()
+        );
     }
 
     @Bean(name = "lsfOutboxSchedule")
@@ -74,14 +81,16 @@ public class LsfOutboxPostgresAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "lsf.outbox.publisher", name = "enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "lsf.outbox", name = "enabled", havingValue = "true")
     @ConditionalOnProperty(prefix = "lsf.outbox.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnBean({ KafkaTemplate.class, JdbcOutboxRepository.class, MeterRegistry.class })
     public OutboxMetrics outboxMetrics(MeterRegistry registry,
                                        JdbcOutboxRepository repo,
-                                       Clock clock) {
-
-        OutboxMetrics m = new OutboxMetrics(registry, repo, clock);
+                                       @Qualifier("lsfOutboxPostgresClock") Clock clock,
+                                       org.springframework.core.env.Environment env,
+                                       LsfOutboxPostgresProperties props) {
+        String service = env.getProperty("spring.application.name", "unknown-service");
+        OutboxMetrics m = new OutboxMetrics(registry, repo, clock, service, props.getTable());
         m.preRegister();
         return m;
     }

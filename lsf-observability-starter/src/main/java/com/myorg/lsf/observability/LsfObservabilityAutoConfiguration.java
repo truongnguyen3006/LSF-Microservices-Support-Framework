@@ -4,6 +4,9 @@ import com.myorg.lsf.eventing.LsfDispatcher;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.prometheus.PrometheusMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -13,7 +16,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import io.micrometer.observation.ObservationRegistry;
 
-@AutoConfiguration
+@AutoConfiguration(after = {
+        MetricsAutoConfiguration.class,
+        CompositeMeterRegistryAutoConfiguration.class,
+        PrometheusMetricsExportAutoConfiguration.class
+})
 @ConditionalOnClass(LsfDispatcher.class)
 @EnableConfigurationProperties(LsfObservabilityProperties.class)
 public class LsfObservabilityAutoConfiguration {

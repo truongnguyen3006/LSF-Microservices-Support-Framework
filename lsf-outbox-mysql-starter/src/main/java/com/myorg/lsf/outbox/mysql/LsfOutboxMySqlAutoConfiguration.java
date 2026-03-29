@@ -56,9 +56,15 @@ public class LsfOutboxMySqlAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "lsf.outbox", name = "enabled", havingValue = "true")
     public OutboxWriter outboxWriter(JdbcTemplate jdbcTemplate,
-                                     ObjectMapper lsfOutboxObjectMapper,
-                                     LsfOutboxMySqlProperties props) {
-        return new JdbcOutboxWriter(jdbcTemplate, lsfOutboxObjectMapper, props);
+                                     @Qualifier("lsfOutboxObjectMapper") ObjectMapper lsfOutboxObjectMapper,
+                                     LsfOutboxMySqlProperties props,
+                                     ObjectProvider<OutboxMetrics> metricsProvider){
+        return new JdbcOutboxWriter(
+                jdbcTemplate,
+                lsfOutboxObjectMapper,
+                props,
+                metricsProvider.getIfAvailable()
+        );
     }
 
     @Bean(name = "lsfOutboxSchedule")
@@ -73,13 +79,16 @@ public class LsfOutboxMySqlAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "lsf.outbox.publisher", name = "enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "lsf.outbox", name = "enabled", havingValue = "true")
     @ConditionalOnProperty(prefix = "lsf.outbox.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnBean({KafkaTemplate.class, JdbcOutboxRepository.class, MeterRegistry.class})
     public OutboxMetrics outboxMetrics(MeterRegistry registry,
                                        JdbcOutboxRepository repo,
-                                       Clock clock) {
-        OutboxMetrics m = new OutboxMetrics(registry, repo, clock);
+                                       @Qualifier("lsfOutboxMySqlClock") Clock clock,
+                                       org.springframework.core.env.Environment env,
+                                       LsfOutboxMySqlProperties props) {
+        String service = env.getProperty("spring.application.name", "unknown-service");
+        OutboxMetrics m = new OutboxMetrics(registry, repo, clock, service, props.getTable());
         m.preRegister();
         return m;
     }
