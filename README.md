@@ -596,8 +596,8 @@ Codebase hiện tại đã tạo nền tốt cho một số bước tiếp theo:
 - `lsf-example/` — ứng dụng ví dụ nhỏ và demo flows
 
 ### Các external link 
-   Backend consumer repo: https://github.com/truongnguyen3006/Backend-consumer.git
-   Frontend repo: https://github.com/truongnguyen3006/Front-End-LSF.git
+- Backend consumer repo: https://github.com/truongnguyen3006/Backend-consumer.git
+- Frontend repo: https://github.com/truongnguyen3006/Front-End-LSF.git
 ### Nên bắt đầu từ đâu nếu bạn mới vào repo?
 
 - đọc README root này trước
