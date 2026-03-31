@@ -20,6 +20,8 @@ public class OutboxAdminController {
     public List<OutboxAdminRow> list(
             @RequestParam(name = "status", required = false) List<String> status,
             @RequestParam(name = "topic", required = false) String topic,
+            @RequestParam(name = "msgKey", required = false) String msgKey,
+            @RequestParam(name = "eventType", required = false) String eventType,
             @RequestParam(name = "from", required = false) String from,
             @RequestParam(name = "to", required = false) String to,
             @RequestParam(name = "limit", required = false) Integer limit,
@@ -29,7 +31,7 @@ public class OutboxAdminController {
         java.time.Instant fromTs = (from == null || from.isBlank()) ? null : java.time.Instant.parse(from);
         java.time.Instant toTs = (to == null || to.isBlank()) ? null : java.time.Instant.parse(to);
 
-        return svc.list(statuses, topic, fromTs, toTs, limit, offset);
+        return svc.list(statuses, topic, msgKey, eventType, fromTs, toTs, limit, offset);
     }
 
     @GetMapping("/{id}")

@@ -17,13 +17,15 @@ public class OutboxAdminService {
 
     public List<OutboxAdminRow> list(List<OutboxStatus> statuses,
                                      String topic,
+                                     String msgKey,
+                                     String eventType,
                                      Instant from,
                                      Instant to,
                                      Integer limit,
                                      Integer offset) {
         int lim = clamp(limit != null ? limit : props.getDefaultLimit());
         int off = Math.max(0, offset != null ? offset : 0);
-        return repo.list(statuses, topic, from, to, lim, off);
+        return repo.list(statuses, topic, normalize(msgKey), normalize(eventType), from, to, lim, off);
     }
 
     public Optional<OutboxAdminRow> findByEventId(String eventId) {
@@ -69,5 +71,11 @@ public class OutboxAdminService {
     private int clamp(int v) {
         if (v <= 0) return props.getDefaultLimit();
         return Math.min(v, props.getMaxLimit());
+    }
+
+    private static String normalize(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

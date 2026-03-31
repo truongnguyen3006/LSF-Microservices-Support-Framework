@@ -18,12 +18,15 @@ public class JdbcOutboxAdminRepository {
     private final NamedParameterJdbcTemplate named;
     private final JdbcTemplate jdbc;
     private final String table;
+
     private String t() {
         return OutboxSql.validateTableName(table);
     }
 
     public List<OutboxAdminRow> list(List<OutboxStatus> statuses,
                                      String topic,
+                                     String msgKey,
+                                     String eventType,
                                      Instant from,
                                      Instant to,
                                      int limit,
@@ -48,6 +51,16 @@ public class JdbcOutboxAdminRepository {
         if (topic != null && !topic.isBlank()) {
             sql.append(" AND topic = :topic ");
             p.addValue("topic", topic.trim());
+        }
+
+        if (msgKey != null && !msgKey.isBlank()) {
+            sql.append(" AND msg_key = :msgKey ");
+            p.addValue("msgKey", msgKey.trim());
+        }
+
+        if (eventType != null && !eventType.isBlank()) {
+            sql.append(" AND event_type = :eventType ");
+            p.addValue("eventType", eventType.trim());
         }
 
         if (from != null) {

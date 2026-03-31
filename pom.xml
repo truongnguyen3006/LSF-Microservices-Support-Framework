@@ -13,7 +13,6 @@
         <module>lsf-kafka-starter</module>
         <module>lsf-contracts</module>
         <module>lsf-eventing-starter</module>
-        <module>lsf-saga-redis-starter</module>
         <module>lsf-quota-streams-starter</module>
         <module>lsf-observability-starter</module>
         <module>lsf-example</module>
