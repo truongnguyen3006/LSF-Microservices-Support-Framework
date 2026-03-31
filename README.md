@@ -460,6 +460,10 @@ Nhiều module đã được đem tích hợp vào một hệ ecommerce microser
 
 ### Ví dụ tích hợp cụ thể
 
+## Repos áp dụng framework
+- [Backend consumer sau khi tích hợp LSF](https://github.com/truongnguyen3006/Backend-consumer)
+- [Frontend consumer](https://github.com/truongnguyen3006/Front-End-LSF)
+
 #### Inventory service
 
 Phần tích hợp ở consumer tạo một lớp adapter để ánh xạ identity của order/SKU trong ecommerce thành quota keys và request ids, rồi gọi xuống `QuotaService`.
@@ -509,20 +513,6 @@ Quota flow đặc biệt phù hợp với các bài test kiểu contention như:
 - hot SKU / flash-sale traffic
 - race-condition style concurrent reservation attempts
 - acceptance bị chặn trong giới hạn tài nguyên cố định
-
-### Các khối evidence nên chèn thêm khi public repo
-
-Bạn có thể thêm screenshot hoặc chart vào section này khi chuẩn bị đẩy GitHub:
-
-- `[TODO: Chèn biểu đồ benchmark tổng quan ở đây — so sánh baseline flow và flow đã tích hợp quota/outbox]`
-- `[TODO: Chèn bảng kết quả test race-condition / hot-SKU ở đây — accepted vs rejected dưới tải cạnh tranh]`
-- `[TODO: Chèn ảnh Grafana hoặc Actuator metrics ở đây — quota/outbox/event processing metrics]`
-- `[TODO: Chèn ảnh outbox admin page ở đây — evidence inspect/requeue]`
-- `[TODO: Chèn ảnh waiting page / order progress ở đây — evidence giao diện cho async workflow]`
-- `[TODO: Chèn sequence diagram order-inventory-payment ở đây — mô tả luồng kiểm chứng rút gọn]`
-
-> Hãy giữ các hình ảnh này tập trung vào thay đổi kỹ thuật: reservation lifecycle, outbox lifecycle, và operational visibility.
-
 ---
 
 ## Phạm vi hiện tại và các giới hạn
@@ -595,9 +585,6 @@ Codebase hiện tại đã tạo nền tốt cho một số bước tiếp theo:
 - `lsf-saga-redis-starter/` — Redis saga/state module hướng tới tương lai
 - `lsf-example/` — ứng dụng ví dụ nhỏ và demo flows
 
-### Các external link 
-- Backend consumer repo: https://github.com/truongnguyen3006/Backend-consumer.git
-- Frontend repo: https://github.com/truongnguyen3006/Front-End-LSF.git
 ### Nên bắt đầu từ đâu nếu bạn mới vào repo?
 
 - đọc README root này trước
