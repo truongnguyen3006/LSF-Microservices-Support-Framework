@@ -661,4 +661,4 @@ Giá trị của nó không nằm ở việc tuyên bố giải quyết mọi th
 
 - **Tên:** Nguyễn Lâm Trường
 - **Email:** lamtruongnguyen2004@gmail.com
-- **GitHub:** [https://github.com/username](https://github.com/truongnguyen3006)
+- **GitHub:** [https://github.com/truongnguyen3006](https://github.com/truongnguyen3006)
