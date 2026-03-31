@@ -656,3 +656,9 @@ Không phải service nào cũng cần tất cả module.
 LSF nên được hiểu như một tầng framework có thể tái sử dụng cho các concern phổ biến trong microservices hướng sự kiện, được phát triển với chiều sâu của một đề tài luận văn và có điểm tựa thực tế là việc tích hợp một phần vào một consumer system không quá đơn giản.
 
 Giá trị của nó không nằm ở việc tuyên bố giải quyết mọi thứ. Giá trị của nó nằm ở chỗ biến một số pattern hạ tầng quan trọng — chuẩn hóa Kafka, shared contracts, event dispatch, reservation flow, reliable publishing, và operational visibility — thành các module có thể dùng lại và áp dụng dần từng bước.
+
+## Tác giả
+
+- **Tên:** Nguyễn Lâm Trường
+- **Email:** lamtruongnguyen2004@gmail.com
+- **GitHub:** [https://github.com/username](https://github.com/truongnguyen3006)
