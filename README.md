@@ -517,8 +517,6 @@ Quota flow đặc biệt phù hợp với các bài test kiểu contention như:
 
 ## Phạm vi hiện tại và các giới hạn
 
-Dự án này được chủ động giới hạn phạm vi và nên được mô tả trung thực.
-
 ### Những gì LSF hiện đang thể hiện tốt
 
 - cấu trúc framework dạng starter có thể tái sử dụng cho microservices hướng sự kiện
