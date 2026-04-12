@@ -1,0 +1,110 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example/lsf-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: /actuator/prometheus
+  prometheus.io/port: "8080"
+
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+containerPort: 8080
+terminationGracePeriodSeconds: 30
+
+spring:
+  profiles: kubernetes
+
+javaToolOptions: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+env:
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_HEALTH_LIVENESSSTATE_ENABLED: "true"
+  MANAGEMENT_HEALTH_READINESSSTATE_ENABLED: "true"
+  SERVER_SHUTDOWN: graceful
+  SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
+
+envFrom:
+  configMaps: []
+  secrets: []
+
+probes:
+  startup:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 30
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1024Mi
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: lsf-service.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 75
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

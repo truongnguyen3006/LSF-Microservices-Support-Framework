@@ -11,11 +11,20 @@
 
     <modules>
         <module>lsf-kafka-starter</module>
+        <module>lsf-kafka-admin-starter</module>
         <module>lsf-contracts</module>
         <module>lsf-eventing-starter</module>
-        <module>lsf-saga-redis-starter</module>
         <module>lsf-quota-streams-starter</module>
         <module>lsf-observability-starter</module>
+        <module>lsf-discovery-starter</module>
+        <module>lsf-config-starter</module>
+        <module>lsf-gateway-starter</module>
+        <module>lsf-security-starter</module>
+        <module>lsf-resilience-starter</module>
+        <module>lsf-saga-starter</module>
+        <module>lsf-service-web-starter</module>
+        <module>lsf-http-client-starter</module>
+        <module>lsf-service-template</module>
         <module>lsf-example</module>
         <module>lsf-outbox-mysql-starter</module>
         <module>lsf-outbox-core</module>
@@ -24,13 +33,20 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>21</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>3.5.7</spring-boot.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <confluent.version>7.6.0</confluent.version>
         <flyway.version>10.22.0</flyway.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
+        <lombok.version>1.18.36</lombok.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
+        <maven.enforcer.plugin.version>3.5.0</maven.enforcer.plugin.version>
+        <enforcer.java.version>[21,22)</enforcer.java.version>
     </properties>
 
     <repositories>
@@ -57,11 +73,130 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-config-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-contracts</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-discovery-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-eventing-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-gateway-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-http-client-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-kafka-admin-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-kafka-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-observability-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-outbox-admin-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-outbox-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-outbox-mysql-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-outbox-postgres-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-quota-streams-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-resilience-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-saga-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-security-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.myorg.lsf</groupId>
+                <artifactId>lsf-service-web-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-json-schema-serializer</artifactId>
+                <version>${confluent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-streams-json-schema-serde</artifactId>
+                <version>${confluent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-circuitbreaker</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-retry</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-timelimiter</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-ratelimiter</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
                 <version>${flyway.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-mysql</artifactId>
@@ -86,14 +221,14 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
+                    <version>${maven.compiler.plugin.version}</version>
                     <configuration>
                         <proc>full</proc>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>1.18.36</version>
+                                <version>${lombok.version}</version>
                             </path>
                             <path>
                                 <groupId>org.springframework.boot</groupId>
@@ -103,8 +238,67 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven.failsafe.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven.enforcer.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-java-baseline</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>${enforcer.java.version}</version>
+                                    <message>LSF framework must be built with JDK 21. Check JAVA_HOME and confirm with 'mvn -version'.</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>heavy-integration</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

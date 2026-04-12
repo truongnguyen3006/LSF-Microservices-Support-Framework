@@ -11,4 +11,7 @@ public final class LsfDlqHeaders {
 
     public static final String SERVICE = "lsf.dlq.service";
     public static final String TS_MS = "lsf.dlq.ts_ms";
+    public static final String ORIGINAL_TOPIC = "lsf.dlq.original_topic";
+    public static final String ORIGINAL_PARTITION = "lsf.dlq.original_partition";
+    public static final String ORIGINAL_OFFSET = "lsf.dlq.original_offset";
 }

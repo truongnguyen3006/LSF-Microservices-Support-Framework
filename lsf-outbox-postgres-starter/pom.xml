@@ -12,12 +12,6 @@
     <artifactId>lsf-outbox-postgres-starter</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
         <!-- Boot auto-config -->
         <dependency>
@@ -57,7 +51,6 @@
         <dependency>
             <groupId>com.myorg.lsf</groupId>
             <artifactId>lsf-outbox-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- metrics -->
@@ -103,11 +96,6 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>

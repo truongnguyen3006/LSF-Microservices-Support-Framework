@@ -17,6 +17,29 @@ public class EnvelopeBuilder {
                                      String producer,
                                      Object payloadObj
                                      ){
+        return wrap(
+                mapper,
+                eventType,
+                version,
+                aggregateId,
+                correlationId,
+                causationId,
+                null,
+                producer,
+                payloadObj
+        );
+    }
+
+    public static EventEnvelope wrap(ObjectMapper mapper,
+                                     String eventType,
+                                     int version,
+                                     String aggregateId,
+                                     String correlationId,
+                                     String causationId,
+                                     String requestId,
+                                     String producer,
+                                     Object payloadObj
+                                     ){
         return EventEnvelope.builder()
                 .eventId(UUID.randomUUID().toString())
                 .eventType(eventType)
@@ -24,6 +47,7 @@ public class EnvelopeBuilder {
                 .aggregateId(aggregateId)
                 .correlationId(correlationId)
                 .causationId(causationId)
+                .requestId(requestId)
                 .occurredAtMs(System.currentTimeMillis())
                 .producer(producer)
                 .payload(mapper.valueToTree(payloadObj))

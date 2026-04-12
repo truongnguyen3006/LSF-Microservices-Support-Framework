@@ -1,0 +1,10 @@
+# Add lsf-outbox-mysql-starter and a MySQL driver before using this profile.
+lsf:
+  outbox:
+    enabled: true
+    table: lsf_outbox
+    publisher:
+      enabled: true
+      scheduling-enabled: true
+      batch-size: 50
+      claim-strategy: LEASE

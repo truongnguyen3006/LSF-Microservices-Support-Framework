@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.*;
                 "spring.datasource.username=sa",
                 "spring.datasource.password=",
                 "spring.flyway.enabled=true",
+                "spring.flyway.locations=classpath:META-INF/spring/lsf/sql/mysql",
 
                 "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
                 "spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer",

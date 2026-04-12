@@ -98,9 +98,10 @@ public class KafkaErrorHandlingAutoConfiguration {
     @Bean
     public static BeanPostProcessor lsfKafkaErrorHandlerMetricsPostProcessor(
             Environment env,
-            ObjectProvider<MeterRegistry> registryProvider
+            ObjectProvider<MeterRegistry> registryProvider,
+            ObjectProvider<LsfDlqReasonClassifier> classifierProvider
     ) {
-        return new DefaultErrorHandlerMetricsPostProcessor(env, registryProvider);
+        return new DefaultErrorHandlerMetricsPostProcessor(env, registryProvider, classifierProvider);
     }
 
     @Bean
@@ -143,10 +144,16 @@ public class KafkaErrorHandlingAutoConfiguration {
 
         private final String service;
         private final ObjectProvider<MeterRegistry> registryProvider;
+        private final ObjectProvider<LsfDlqReasonClassifier> classifierProvider;
 
-        DefaultErrorHandlerMetricsPostProcessor(Environment env, ObjectProvider<MeterRegistry> registryProvider) {
+        DefaultErrorHandlerMetricsPostProcessor(
+                Environment env,
+                ObjectProvider<MeterRegistry> registryProvider,
+                ObjectProvider<LsfDlqReasonClassifier> classifierProvider
+        ) {
             this.service = env.getProperty("spring.application.name", "unknown-service");
             this.registryProvider = registryProvider;
+            this.classifierProvider = classifierProvider;
         }
 
         @Override
@@ -169,7 +176,11 @@ public class KafkaErrorHandlingAutoConfiguration {
         }
 
         private void attachIfMissing(DefaultErrorHandler handler) {
-            RetryListener listener = new LsfKafkaRetryDlqMetricsListener(service, registryProvider);
+            RetryListener listener = new LsfKafkaRetryDlqMetricsListener(
+                    service,
+                    registryProvider,
+                    classifierProvider.getIfAvailable(DefaultLsfDlqReasonClassifier::new)
+            );
 
             if (hasListener(handler, LsfKafkaRetryDlqMetricsListener.class)) {
                 return;
@@ -306,44 +317,53 @@ public class KafkaErrorHandlingAutoConfiguration {
 
         private final String service;
         private final ObjectProvider<MeterRegistry> registryProvider;
+        private final LsfDlqReasonClassifier classifier;
 
-        LsfKafkaRetryDlqMetricsListener(String service, ObjectProvider<MeterRegistry> registryProvider) {
+        LsfKafkaRetryDlqMetricsListener(
+                String service,
+                ObjectProvider<MeterRegistry> registryProvider,
+                LsfDlqReasonClassifier classifier
+        ) {
             this.service = service;
             this.registryProvider = registryProvider;
+            this.classifier = classifier;
         }
 
         @Override
         public void failedDelivery(ConsumerRecord<?, ?> record, Exception ex, int deliveryAttempt) {
             log.warn("Retrying topic={} partition={} offset={} attempt={} error={}"
                     , record.topic(), record.partition(), record.offset(), deliveryAttempt, ex.toString());
-            inc("lsf.kafka.retry", record.topic(), ex);
+            inc("lsf.kafka.retry", record, ex);
         }
 
         @Override
         public void recovered(ConsumerRecord<?, ?> record, Exception ex) {
             log.error("Recovered (sent to DLQ) topic={} partition={} offset={} error={}"
                     , record.topic(), record.partition(), record.offset(), ex.toString());
-            inc("lsf.kafka.dlq", record.topic(), ex);
+            inc("lsf.kafka.dlq", record, ex);
         }
 
         @Override
         public void recoveryFailed(ConsumerRecord<?, ?> record, Exception original, Exception failure) {
             log.error("Recovery FAILED topic={} partition={} offset={} originalError={} recoveryError={}" 
                     , record.topic(), record.partition(), record.offset(), original.toString(), failure.toString(), failure);
-            inc("lsf.kafka.recovery_failed", record.topic(), failure);
+            inc("lsf.kafka.recovery_failed", record, failure);
         }
 
-        private void inc(String metric, String topic, Exception ex) {
+        private void inc(String metric, ConsumerRecord<?, ?> record, Exception ex) {
             MeterRegistry registry = registryProvider.getIfAvailable();
             if (registry == null) return;
 
             Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);
             String exName = (root != null ? root.getClass().getSimpleName() : ex.getClass().getSimpleName());
+            LsfDlqReasonClassifier.Decision decision = classifier.classify(record, ex);
 
             Counter.builder(metric)
                     .tag("service", service)
-                    .tag("topic", topic)
+                    .tag("topic", record.topic())
                     .tag("exception", exName)
+                    .tag("reason", decision.reason())
+                    .tag("non_retryable", String.valueOf(decision.nonRetryable()))
                     .register(registry)
                     .increment();
         }
@@ -376,6 +396,9 @@ public class KafkaErrorHandlingAutoConfiguration {
 
                 putHeader(headers, LsfDlqHeaders.SERVICE, service);
                 putHeader(headers, LsfDlqHeaders.TS_MS, String.valueOf(Instant.now().toEpochMilli()));
+                putHeader(headers, LsfDlqHeaders.ORIGINAL_TOPIC, rec.topic());
+                putHeader(headers, LsfDlqHeaders.ORIGINAL_PARTITION, String.valueOf(rec.partition()));
+                putHeader(headers, LsfDlqHeaders.ORIGINAL_OFFSET, String.valueOf(rec.offset()));
 
                 return headers;
             };

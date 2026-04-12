@@ -5,12 +5,22 @@
     <file url="file://$PROJECT_DIR$/example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-config-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-config-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-contracts/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-contracts/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-discovery-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-discovery-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-eventing-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-eventing-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-example/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-example/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-gateway-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-gateway-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-http-client-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-http-client-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-kafka-admin-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-kafka-admin-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-kafka-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-kafka-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-observability-starter/src/main/java" charset="UTF-8" />
@@ -25,8 +35,18 @@
     <file url="file://$PROJECT_DIR$/lsf-outbox-postgres-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-quota-streams-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-quota-streams-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-resilience-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-resilience-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-saga-redis-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lsf-saga-redis-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-saga-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-saga-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-security-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-security-starter/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-service-template/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-service-template/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-service-web-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lsf-service-web-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

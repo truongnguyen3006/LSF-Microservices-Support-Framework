@@ -1,0 +1,8 @@
+lsf:
+  discovery:
+    services:
+      dependency-service:
+        - uri: ${LSF_DEPENDENCY_SERVICE_URI:http://lsf-example:8080}
+
+  kafka:
+    bootstrap-servers: ${LSF_KAFKA_BOOTSTRAP_SERVERS:kafka:29092}

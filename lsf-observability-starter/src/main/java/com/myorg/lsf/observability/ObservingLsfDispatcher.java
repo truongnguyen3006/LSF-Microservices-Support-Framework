@@ -1,5 +1,6 @@
 package com.myorg.lsf.observability;
 
+import com.myorg.lsf.contracts.core.conventions.CoreHeaders;
 import com.myorg.lsf.contracts.core.envelope.EventEnvelope;
 import com.myorg.lsf.eventing.LsfDispatcher;
 import com.myorg.lsf.eventing.context.LsfDispatchOutcome;
@@ -84,11 +85,43 @@ public class ObservingLsfDispatcher implements LsfDispatcher {
         if (env.getCorrelationId() != null) MDC.put("corrId", env.getCorrelationId());
         if (env.getEventId() != null) MDC.put("eventId", env.getEventId());
         if (env.getEventType() != null) MDC.put("eventType", env.getEventType());
+        if (env.getCausationId() != null) MDC.put("causationId", env.getCausationId());
+        if (env.getRequestId() != null) MDC.put("requestId", env.getRequestId());
+        if (env.getTraceHeaders() != null && !env.getTraceHeaders().isEmpty()) {
+            putTraceIds(env);
+        }
     }
 
     private void clearMdc() {
         MDC.remove("corrId");
         MDC.remove("eventId");
         MDC.remove("eventType");
+        MDC.remove("causationId");
+        MDC.remove("requestId");
+        MDC.remove("traceId");
+        MDC.remove("spanId");
+    }
+
+    private void putTraceIds(EventEnvelope env) {
+        if (MDC.get("traceId") != null && MDC.get("spanId") != null) {
+            return;
+        }
+
+        String traceparent = env.getTraceHeaders().get(CoreHeaders.TRACEPARENT);
+        if (traceparent != null) {
+            String[] parts = traceparent.split("-");
+            if (parts.length >= 4) {
+                MDC.put("traceId", parts[1]);
+                MDC.put("spanId", parts[2]);
+                return;
+            }
+        }
+
+        String traceId = env.getTraceHeaders().get(CoreHeaders.X_B3_TRACE_ID);
+        String spanId = env.getTraceHeaders().get(CoreHeaders.X_B3_SPAN_ID);
+        if (traceId != null && spanId != null) {
+            MDC.put("traceId", traceId);
+            MDC.put("spanId", spanId);
+        }
     }
 }

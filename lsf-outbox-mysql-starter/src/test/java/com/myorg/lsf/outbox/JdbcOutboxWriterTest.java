@@ -29,7 +29,7 @@ class JdbcOutboxWriterTest {
 
         Flyway.configure()
                 .dataSource(ds)
-                .locations("classpath:db/migration")
+                .locations("classpath:META-INF/spring/lsf/sql/mysql")
                 .load()
                 .migrate();
 

@@ -25,5 +25,6 @@ public abstract class MySqlContainerBase {
         r.add("spring.datasource.username", mysql::getUsername);
         r.add("spring.datasource.password", mysql::getPassword);
         r.add("spring.flyway.enabled", () -> "true");
+        r.add("spring.flyway.locations", () -> "classpath:META-INF/spring/lsf/sql/mysql");
     }
 }

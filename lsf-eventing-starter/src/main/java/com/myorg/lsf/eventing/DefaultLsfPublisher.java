@@ -26,7 +26,25 @@ public class DefaultLsfPublisher implements LsfPublisher {
 
     @Override
     public CompletableFuture<?> publish(String topic, String key, String eventType, String aggregateId, Object payload) {
-        String correlationId = StringUtils.hasText(aggregateId) ? aggregateId : key;
+        return publish(topic, key, eventType, aggregateId, payload, null);
+    }
+
+    @Override
+    public CompletableFuture<?> publish(
+            String topic,
+            String key,
+            String eventType,
+            String aggregateId,
+            Object payload,
+            LsfPublishOptions options
+    ) {
+        String correlationId = options != null && StringUtils.hasText(options.getCorrelationId())
+                ? options.getCorrelationId()
+                : (StringUtils.hasText(aggregateId) ? aggregateId : key);
+
+        String producer = options != null && StringUtils.hasText(options.getProducer())
+                ? options.getProducer()
+                : producerName;
 
         EventEnvelope env = EnvelopeBuilder.wrap(
                 mapper,
@@ -34,10 +52,19 @@ public class DefaultLsfPublisher implements LsfPublisher {
                 1,
                 aggregateId,
                 correlationId,
-                null,
-                producerName,
+                options == null ? null : options.getCausationId(),
+                options == null ? null : options.getRequestId(),
+                producer,
                 payload
         );
+        LsfTraceHeaders.enrichEnvelope(env);
+
+        return publish(topic, key, env);
+    }
+
+    @Override
+    public CompletableFuture<?> publish(String topic, String key, EventEnvelope env) {
+        LsfTraceHeaders.enrichEnvelope(env);
 
         ProducerRecord<String, Object> record = new ProducerRecord<>(topic, key, env);
 
@@ -50,6 +77,10 @@ public class DefaultLsfPublisher implements LsfPublisher {
         if (StringUtils.hasText(env.getCausationId())) {
             record.headers().add(new RecordHeader(CoreHeaders.CAUSATION_ID, env.getCausationId().getBytes(StandardCharsets.UTF_8)));
         }
+        if (StringUtils.hasText(env.getRequestId())) {
+            record.headers().add(new RecordHeader(CoreHeaders.REQUEST_ID, env.getRequestId().getBytes(StandardCharsets.UTF_8)));
+        }
+        LsfTraceHeaders.writeToKafkaHeaders(record.headers(), env);
 
         return kafkaTemplate.send(record);
     }

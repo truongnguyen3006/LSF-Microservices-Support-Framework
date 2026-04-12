@@ -1,0 +1,7 @@
+apiVersion: v2
+name: lsf-service
+description: Generic Helm chart skeleton for LSF-based Spring Boot microservices
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+icon: https://helm.sh/img/helm.svg

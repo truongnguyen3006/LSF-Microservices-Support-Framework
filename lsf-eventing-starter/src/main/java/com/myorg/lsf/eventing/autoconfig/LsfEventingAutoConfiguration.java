@@ -120,9 +120,9 @@ public class LsfEventingAutoConfiguration {
 
         IdempotencyStore store = storeProvider.getIfAvailable();
         if (store != null && props.getIdempotency().isEnabled()) {
-            return new IdempotentLsfDispatcher(base, store);
+            base = new IdempotentLsfDispatcher(base, store);
         }
-        return base;
+        return new ContextAwareLsfDispatcher(base);
     }
 
     // ---------------- Idempotency store auto-configuration ----------------

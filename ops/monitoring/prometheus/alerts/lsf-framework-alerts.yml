@@ -1,0 +1,47 @@
+groups:
+  - name: lsf-framework
+    rules:
+      - alert: LsfKafkaDlqTrafficHigh
+        expr: sum(rate(lsf_kafka_dlq_total[5m])) by (service, topic) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LSF Kafka DLQ traffic detected for {{ $labels.service }}"
+          description: "DLQ rate on topic {{ $labels.topic }} is non-zero for 10 minutes."
+
+      - alert: LsfKafkaRecoveryFailed
+        expr: sum(rate(lsf_kafka_recovery_failed_total[5m])) by (service, topic) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LSF Kafka recovery failed for {{ $labels.service }}"
+          description: "Kafka recovery to DLQ is failing on topic {{ $labels.topic }}."
+
+      - alert: LsfOutboxBacklogGrowing
+        expr: sum(lsf_outbox_pending) by (service, table) > 50
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LSF outbox backlog is growing for {{ $labels.service }}"
+          description: "Pending outbox rows on table {{ $labels.table }} are above threshold."
+
+      - alert: LsfEventDispatchFailures
+        expr: sum(rate(lsf_event_handled_fail_total[5m])) by (service) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LSF event dispatch failures detected for {{ $labels.service }}"
+          description: "Async event handlers are failing continuously for 10 minutes."
+
+      - alert: LsfReplayFailures
+        expr: sum(rate(lsf_kafka_replay_fail_total[5m])) by (service) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LSF DLQ replay failures detected for {{ $labels.service }}"
+          description: "One or more replay attempts are failing."

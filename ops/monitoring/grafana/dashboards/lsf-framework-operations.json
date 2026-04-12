@@ -1,0 +1,249 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "sum(rate(lsf_event_handled_success_total[5m])) by (service)",
+          "legendFormat": "success {{service}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(lsf_event_handled_fail_total[5m])) by (service)",
+          "legendFormat": "fail {{service}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(lsf_event_duplicate_total[5m])) by (service)",
+          "legendFormat": "duplicate {{service}}",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate(lsf_event_in_flight_total[5m])) by (service)",
+          "legendFormat": "in-flight {{service}}",
+          "refId": "D"
+        }
+      ],
+      "title": "Event Dispatch Outcomes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "sum(rate(lsf_event_processing_seconds_sum[5m])) by (service) / clamp_min(sum(rate(lsf_event_processing_seconds_count[5m])) by (service), 1)",
+          "legendFormat": "avg {{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Event Processing Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "sum(rate(lsf_kafka_retry_total[5m])) by (service, topic)",
+          "legendFormat": "retry {{service}} {{topic}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(lsf_kafka_dlq_total[5m])) by (service, topic)",
+          "legendFormat": "dlq {{service}} {{topic}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(lsf_kafka_recovery_failed_total[5m])) by (service, topic)",
+          "legendFormat": "recovery_failed {{service}} {{topic}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Kafka Retry / DLQ / Recovery",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum(lsf_outbox_pending) by (service, table)",
+          "legendFormat": "{{service}} {{table}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Outbox Pending Rows",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "sum(rate(lsf_outbox_sent_total[5m])) by (service, table)",
+          "legendFormat": "sent {{service}} {{table}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(lsf_outbox_retry_total[5m])) by (service, table)",
+          "legendFormat": "retry {{service}} {{table}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(lsf_outbox_fail_total[5m])) by (service, table)",
+          "legendFormat": "fail {{service}} {{table}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Outbox Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "sum(rate(lsf_kafka_replay_success_total[5m])) by (service)",
+          "legendFormat": "success {{service}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(lsf_kafka_replay_fail_total[5m])) by (service)",
+          "legendFormat": "fail {{service}}",
+          "refId": "B"
+        }
+      ],
+      "title": "DLQ Replay Activity",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "lsf",
+    "operations",
+    "framework"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LSF Framework Operations",
+  "version": 1
+}

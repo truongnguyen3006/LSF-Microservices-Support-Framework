@@ -1,0 +1,85 @@
+name: Release Candidate
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  package-release-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: v3.16.4
+
+      - name: Compute artifact tag
+        shell: bash
+        run: echo "ARTIFACT_TAG=${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Validate deployment artifacts
+        shell: pwsh
+        run: ./ops/deployment/validate.ps1
+
+      - name: Package Maven release-candidate artifacts
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Collect Maven jars
+        shell: bash
+        run: |
+          mkdir -p release-artifacts/maven
+          find . -path '*/target/*.jar' ! -name '*.original' -exec cp --parents {} release-artifacts/maven \;
+
+      - name: Package Helm chart
+        run: |
+          mkdir -p release-artifacts/helm
+          helm package ops/deployment/helm/lsf-service --destination release-artifacts/helm
+
+      - name: Build release-candidate images
+        run: |
+          docker build -f lsf-example/Dockerfile -t lsf-example:${ARTIFACT_TAG} .
+          docker build -f lsf-service-template/Dockerfile -t lsf-service-template:${ARTIFACT_TAG} .
+
+      - name: Export container images
+        shell: bash
+        run: |
+          mkdir -p release-artifacts/images
+          docker save lsf-example:${ARTIFACT_TAG} | gzip > release-artifacts/images/lsf-example-${ARTIFACT_TAG}.tar.gz
+          docker save lsf-service-template:${ARTIFACT_TAG} | gzip > release-artifacts/images/lsf-service-template-${ARTIFACT_TAG}.tar.gz
+
+      - name: Upload Maven artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsf-maven-${{ env.ARTIFACT_TAG }}
+          path: release-artifacts/maven
+          if-no-files-found: error
+
+      - name: Upload Helm chart
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsf-helm-${{ env.ARTIFACT_TAG }}
+          path: release-artifacts/helm
+          if-no-files-found: error
+
+      - name: Upload container archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsf-images-${{ env.ARTIFACT_TAG }}
+          path: release-artifacts/images
+          if-no-files-found: error

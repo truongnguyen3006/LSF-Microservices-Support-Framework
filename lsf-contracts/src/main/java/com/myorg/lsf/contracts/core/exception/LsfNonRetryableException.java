@@ -1,6 +1,6 @@
 package com.myorg.lsf.contracts.core.exception;
 
-public class LsfNonRetryableException extends RuntimeException {
+public class LsfNonRetryableException extends RuntimeException implements LsfRetryAware {
 
     private final String reason;
 
@@ -16,5 +16,10 @@ public class LsfNonRetryableException extends RuntimeException {
 
     public String getReason() {
         return reason;
+    }
+
+    @Override
+    public boolean isRetryable() {
+        return false;
     }
 }

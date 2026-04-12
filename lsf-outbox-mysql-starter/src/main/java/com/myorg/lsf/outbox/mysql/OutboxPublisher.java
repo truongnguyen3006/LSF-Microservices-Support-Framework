@@ -1,14 +1,19 @@
 package com.myorg.lsf.outbox.mysql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myorg.lsf.contracts.core.conventions.CoreHeaders;
 import com.myorg.lsf.contracts.core.envelope.EventEnvelope;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -70,7 +75,9 @@ public class OutboxPublisher {
                 EventEnvelope env = mapper.readValue(row.envelopeJson(), EventEnvelope.class);
 
                 // publish sync (MVP)
-                kafkaTemplate.send(row.topic(), row.msgKey(), env)
+                ProducerRecord<String, Object> record = new ProducerRecord<>(row.topic(), row.msgKey(), env);
+                addHeaders(record, env);
+                kafkaTemplate.send(record)
                         .get(props.getPublisher().getSendTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
                 Instant sentAt = clock.instant();
@@ -130,5 +137,30 @@ public class OutboxPublisher {
         String msg = root.getClass().getSimpleName() + ": " +
                 (root.getMessage() == null ? "" : root.getMessage());
         return msg.length() > 2000 ? msg.substring(0, 2000) : msg;
+    }
+
+    private void addHeaders(ProducerRecord<String, Object> record, EventEnvelope envelope) {
+        record.headers().add(new RecordHeader(CoreHeaders.EVENT_ID, bytes(envelope.getEventId())));
+        record.headers().add(new RecordHeader(CoreHeaders.EVENT_TYPE, bytes(envelope.getEventType())));
+        if (StringUtils.hasText(envelope.getCorrelationId())) {
+            record.headers().add(new RecordHeader(CoreHeaders.CORRELATION_ID, bytes(envelope.getCorrelationId())));
+        }
+        if (StringUtils.hasText(envelope.getCausationId())) {
+            record.headers().add(new RecordHeader(CoreHeaders.CAUSATION_ID, bytes(envelope.getCausationId())));
+        }
+        if (StringUtils.hasText(envelope.getRequestId())) {
+            record.headers().add(new RecordHeader(CoreHeaders.REQUEST_ID, bytes(envelope.getRequestId())));
+        }
+        if (envelope.getTraceHeaders() != null) {
+            envelope.getTraceHeaders().forEach((name, value) -> {
+                if (StringUtils.hasText(name) && StringUtils.hasText(value)) {
+                    record.headers().add(new RecordHeader(name, bytes(value)));
+                }
+            });
+        }
+    }
+
+    private byte[] bytes(String value) {
+        return value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
     }
 }

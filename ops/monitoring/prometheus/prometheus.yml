@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts/lsf-framework-alerts.yml
+
+scrape_configs:
+  - job_name: lsf-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8080
+        labels:
+          service: lsf-example
+      - targets:
+          - host.docker.internal:8081
+        labels:
+          service: template-service

@@ -12,12 +12,6 @@
     <artifactId>lsf-eventing-starter</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
         <!-- AutoConfiguration + @ConfigurationProperties -->
         <dependency>
@@ -29,7 +23,6 @@
         <dependency>
             <groupId>com.myorg.lsf</groupId>
             <artifactId>lsf-contracts</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- KafkaTemplate / @KafkaListener -->
@@ -42,7 +35,6 @@
         <dependency>
             <groupId>com.myorg.lsf</groupId>
             <artifactId>lsf-kafka-starter</artifactId>
-            <version>${project.version}</version>
             <optional>true</optional>
         </dependency>
 

@@ -15,6 +15,25 @@ services:
       timeout: 3s
       retries: 20
 
+  postgres:
+    image: postgres:16
+    container_name: lsf-postgres
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_DB: lsf_example
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - lsf_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lsf_example"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   zipkin:
     image: openzipkin/zipkin:latest
     container_name: lsf-zipkin
@@ -67,5 +86,54 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:29092"
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
 
+  lsf-example:
+    profiles:
+      - apps
+    build:
+      context: .
+      dockerfile: lsf-example/Dockerfile
+    container_name: lsf-example
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+      schema-registry:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,outbox-mysql
+      LSF_MYSQL_HOST: mysql
+      JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8080:8080"
+
+  template-service:
+    profiles:
+      - apps
+    build:
+      context: .
+      dockerfile: lsf-service-template/Dockerfile
+    container_name: lsf-template-service
+    depends_on:
+      lsf-example:
+        condition: service_started
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+      schema-registry:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      LSF_DEPENDENCY_SERVICE_URI: http://lsf-example:8080
+      JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8082:8080"
+
 volumes:
   lsf_mysql_data:
+  lsf_postgres_data:
